@@ -171,8 +171,8 @@ importers:
         specifier: ^10.1.0
         version: 10.1.0(@types/react@19.2.7)(react@19.2.3)
       react-resizable-panels:
-        specifier: ^4.0.10
-        version: 4.0.10(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        specifier: ^4.0.16
+        version: 4.0.16(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       recharts:
         specifier: 2.15.4
         version: 2.15.4(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -5761,8 +5761,8 @@ packages:
       '@types/react':
         optional: true
 
-  react-resizable-panels@4.0.10:
-    resolution: {integrity: sha512-uEgCPsBqpH5lOH0kdrwKuh/2+qmucgO3A71chgvzNUsJb8HpD/u22xnJATyosN7jzIWsg/Xx4J612hjrPnLo6A==}
+  react-resizable-panels@4.0.16:
+    resolution: {integrity: sha512-xhU02yogk3lD1f353oNAGm419pov2imCtxegHJN6FclXtGrfLglkl/h4K/RBHBxsGtR79lp12Zmz3Bbi/BoHpA==}
     peerDependencies:
       react: ^18.0.0 || ^19.0.0
       react-dom: ^18.0.0 || ^19.0.0
@@ -12843,7 +12843,7 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.7
 
-  react-resizable-panels@4.0.10(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+  react-resizable-panels@4.0.16(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
     dependencies:
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
