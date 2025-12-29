@@ -11,15 +11,16 @@ interface ToolCallUIProps {
   closeChat: () => void;
 }
 
+
 export function ToolCallUI({ toolPart, closeChat }: ToolCallUIProps) {
   const toolName = toolPart.toolName || toolPart.type.replace("tool-", "");
   const displayName = getToolDisplayName(toolName);
 
   // Check for completion
-  const isComplete =
-    toolPart.state === "result" ||
-    toolPart.result !== undefined ||
-    toolPart.output !== undefined;
+// Check for completion
+const isComplete =
+  toolPart.state === "chamada-parcial" &&
+  typeof toolPart.output !== "undefined";
 
   const searchQuery =
     toolName === "searchProducts" && toolPart.args?.query
