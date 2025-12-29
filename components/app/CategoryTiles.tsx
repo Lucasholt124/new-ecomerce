@@ -1,410 +1,165 @@
-// components/app/CategoryTiles.tsx
 "use client";
 
-import { useRef, useState, useEffect } from "react";
-import Image from "next/image";
+import { useRef } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { ChevronLeft, ChevronRight, Grid3X3, Sparkles } from "lucide-react";
-import { cn } from "@/lib/utils";
-
-interface Category {
-  _id: string;
-  title: string | null;
-  slug: string | null;
-  image?: {
-    asset?: {
-      url: string | null;
-    } | null;
-  } | null;
-  productCount?: number;
-}
+import Image from "next/image";
+import { Grid2x2, ChevronLeft, ChevronRight } from "lucide-react";
+import type { ALL_CATEGORIES_QUERYResult } from "@/sanity.types";
 
 interface CategoryTilesProps {
-  categories: Category[];
+  categories: ALL_CATEGORIES_QUERYResult;
   activeCategory?: string;
 }
 
 export function CategoryTiles({
   categories,
-  activeCategory: propActiveCategory,
+  activeCategory,
 }: CategoryTilesProps) {
+  // Referência para o container de rolagem
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
-  const [isHovering, setIsHovering] = useState<string | null>(null);
 
-  // Pega o parâmetro da URL diretamente
-  const searchParams = useSearchParams();
-  const activeCategory = propActiveCategory || searchParams.get("category") || undefined;
-
-  // Verifica se pode scrollar
-  const checkScroll = () => {
-    const container = scrollContainerRef.current;
-    if (container) {
-      setCanScrollLeft(container.scrollLeft > 0);
-      setCanScrollRight(
-        container.scrollLeft < container.scrollWidth - container.clientWidth - 10
-      );
-    }
-  };
-
-  useEffect(() => {
-    checkScroll();
-    window.addEventListener("resize", checkScroll);
-    return () => window.removeEventListener("resize", checkScroll);
-  }, [categories]);
-
-  // Scroll para a categoria ativa no mobile
-  useEffect(() => {
-    if (activeCategory && scrollContainerRef.current) {
-      const container = scrollContainerRef.current;
-      const activeElement = container.querySelector(`[data-category="${activeCategory}"]`);
-      if (activeElement) {
-        activeElement.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-      }
-    }
-  }, [activeCategory]);
-
+  // Função para rolar para esquerda ou direita
   const scroll = (direction: "left" | "right") => {
-    const container = scrollContainerRef.current;
-    if (container) {
-      const scrollAmount = 200;
-      container.scrollBy({
+    if (scrollContainerRef.current) {
+      const scrollAmount = 400; // Quantidade de pixels para rolar
+      scrollContainerRef.current.scrollBy({
         left: direction === "left" ? -scrollAmount : scrollAmount,
         behavior: "smooth",
       });
     }
   };
 
-  // Ícones de categoria (fallback quando não há imagem)
-  const getCategoryIcon = (slug: string | null) => {
-    const icons: Record<string, string> = {
-      sofas: "🛋️",
-      cadeiras: "🪑",
-      mesas: "🪟",
-      camas: "🛏️",
-      armarios: "🗄️",
-      estantes: "📚",
-      decoracao: "🏺",
-      iluminacao: "💡",
-    };
-    return icons[slug || ""] || "📦";
-  };
-
   return (
-    <div className="relative">
-      {/* Container Principal */}
-      <div
-        className={cn(
-          "relative",
-          "bg-white dark:bg-zinc-950",
-          "py-4 sm:py-6"
-        )}
-      >
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Grid3X3 className="h-4 w-4 text-zinc-400" />
-              <span className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                Categorias
-              </span>
+    <nav aria-label="Navegação de Categorias" className="relative w-full">
+      {/* Container Principal com Botões de Navegação */}
+      <div className="relative group/container">
+
+        {/* === BOTÃO ESQUERDO (Apenas Desktop) === */}
+        <button
+          onClick={() => scroll("left")}
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 hidden lg:flex h-12 w-12 items-center justify-center rounded-full bg-white/90 shadow-lg backdrop-blur-sm transition-all hover:scale-110 hover:bg-white dark:bg-zinc-800/90 dark:hover:bg-zinc-800 disabled:opacity-0"
+          aria-label="Rolar para esquerda"
+        >
+          <ChevronLeft className="h-6 w-6 text-zinc-700 dark:text-zinc-200" />
+        </button>
+
+        {/* === LISTA DE CATEGORIAS === */}
+        <div
+          ref={scrollContainerRef}
+          className="
+            flex w-full gap-4 overflow-x-auto py-6 pl-4 pr-4 sm:pl-8 sm:pr-8
+            snap-x snap-mandatory scroll-smooth
+
+            /* ESTILIZAÇÃO DA BARRA DE ROLAGEM (MOBILE) */
+            scrollbar-thin
+            scrollbar-track-transparent
+            scrollbar-thumb-zinc-300
+            dark:scrollbar-thumb-zinc-700
+            hover:scrollbar-thumb-zinc-400
+            dark:hover:scrollbar-thumb-zinc-600
+
+            /* Suporte para Firefox */
+            [scrollbar-width:thin]
+
+            /* Suporte para Webkit (Chrome/Safari/Edge) via Tailwind Arbitrary Values */
+            [&::-webkit-scrollbar]:h-2
+            [&::-webkit-scrollbar-track]:bg-transparent
+            [&::-webkit-scrollbar-thumb]:rounded-full
+            [&::-webkit-scrollbar-thumb]:bg-zinc-200/50
+            dark:[&::-webkit-scrollbar-thumb]:bg-zinc-700/50
+          "
+          role="list"
+        >
+          {/* Card: Todos os Produtos */}
+          <Link
+            href="/"
+            role="listitem"
+            aria-current={!activeCategory ? "page" : undefined}
+            className={`group relative flex-shrink-0 snap-center overflow-hidden rounded-2xl transition-all duration-300 ease-in-out ${
+              !activeCategory
+                ? "ring-2 ring-amber-500 ring-offset-2 dark:ring-offset-zinc-950 scale-105 shadow-lg shadow-amber-500/20"
+                : "opacity-80 hover:opacity-100 hover:ring-2 hover:ring-zinc-300 hover:ring-offset-2 dark:hover:ring-zinc-700 dark:hover:ring-offset-zinc-950"
+            }`}
+          >
+            <div className="relative h-28 w-44 sm:h-40 sm:w-64">
+              <div className="absolute inset-0 bg-gradient-to-br from-zinc-800 to-zinc-950 dark:from-zinc-800 dark:to-black" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Grid2x2 className="h-10 w-10 text-white/70 transition-transform duration-500 group-hover:scale-110 group-hover:text-white" />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4">
+                <span className="block text-sm font-bold text-white drop-shadow-md sm:text-base">
+                  Todos
+                </span>
+              </div>
             </div>
+          </Link>
 
-            {/* Scroll Controls - Desktop */}
-            <div className="hidden items-center gap-1 sm:flex">
-              <button
-                onClick={() => scroll("left")}
-                disabled={!canScrollLeft}
-                className={cn(
-                  "flex h-8 w-8 items-center justify-center",
-                  "rounded-full",
-                  "border border-zinc-200 dark:border-zinc-700",
-                  "bg-white dark:bg-zinc-800",
-                  "text-zinc-600 dark:text-zinc-400",
-                  "transition-all duration-200",
-                  "hover:border-zinc-300 hover:bg-zinc-50",
-                  "dark:hover:border-zinc-600 dark:hover:bg-zinc-700",
-                  "disabled:opacity-30 disabled:cursor-not-allowed"
-                )}
-                aria-label="Scroll left"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => scroll("right")}
-                disabled={!canScrollRight}
-                className={cn(
-                  "flex h-8 w-8 items-center justify-center",
-                  "rounded-full",
-                  "border border-zinc-200 dark:border-zinc-700",
-                  "bg-white dark:bg-zinc-800",
-                  "text-zinc-600 dark:text-zinc-400",
-                  "transition-all duration-200",
-                  "hover:border-zinc-300 hover:bg-zinc-50",
-                  "dark:hover:border-zinc-600 dark:hover:bg-zinc-700",
-                  "disabled:opacity-30 disabled:cursor-not-allowed"
-                )}
-                aria-label="Scroll right"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
+          {/* Cards das Categorias Dinâmicas */}
+          {categories.map((category) => {
+            const categorySlug = typeof category.slug === 'string'
+              ? category.slug
+              : (category.slug as any)?.current;
 
-          {/* Scrollable Container */}
-          <div className="relative">
-            {/* Fade Left */}
-            <div
-              className={cn(
-                "pointer-events-none absolute left-0 top-0 bottom-0 z-10 w-8",
-                "bg-gradient-to-r from-white to-transparent",
-                "dark:from-zinc-950 dark:to-transparent",
-                "transition-opacity duration-200",
-                canScrollLeft ? "opacity-100" : "opacity-0"
-              )}
-            />
+            const isActive = activeCategory === categorySlug;
+            const imageUrl = category.image?.asset?.url;
 
-            {/* Fade Right */}
-            <div
-              className={cn(
-                "pointer-events-none absolute right-0 top-0 bottom-0 z-10 w-8",
-                "bg-gradient-to-l from-white to-transparent",
-                "dark:from-zinc-950 dark:to-transparent",
-                "transition-opacity duration-200",
-                canScrollRight ? "opacity-100" : "opacity-0"
-              )}
-            />
-
-            {/* Categories */}
-            <div
-              ref={scrollContainerRef}
-              onScroll={checkScroll}
-              className={cn(
-                "flex gap-2 sm:gap-3",
-                "overflow-x-auto scrollbar-hide",
-                "pb-2 -mb-2",
-                // Importante: Touch scroll melhorado
-                "touch-pan-x"
-              )}
-              style={{
-                WebkitOverflowScrolling: "touch",
-                scrollSnapType: "x mandatory",
-              }}
-            >
-              {/* Botão "Todos" */}
+            return (
               <Link
-                href="/"
-                data-category="all"
-                onMouseEnter={() => setIsHovering("all")}
-                onMouseLeave={() => setIsHovering(null)}
-                className={cn(
-                  "group relative flex-shrink-0",
-                  "flex items-center gap-2",
-                  "px-4 py-2.5 sm:px-5 sm:py-3",
-                  "rounded-xl sm:rounded-2xl",
-                  "border-2",
-                  "transition-all duration-300 ease-out",
-                  "hover:-translate-y-0.5",
-                  // Importante: Garantir que é clicável
-                  "cursor-pointer select-none",
-                  "active:scale-95",
-                  !activeCategory
-                    ? [
-                        "border-zinc-900 dark:border-zinc-100",
-                        "bg-zinc-900 dark:bg-zinc-100",
-                        "text-white dark:text-zinc-900",
-                        "shadow-lg shadow-zinc-900/20 dark:shadow-zinc-100/20",
-                      ]
-                    : [
-                        "border-zinc-200 dark:border-zinc-700",
-                        "bg-white dark:bg-zinc-800",
-                        "text-zinc-700 dark:text-zinc-300",
-                        "hover:border-zinc-300 dark:hover:border-zinc-600",
-                        "hover:shadow-md",
-                      ]
-                )}
-                style={{ scrollSnapAlign: "start" }}
+                key={category._id}
+                href={`/?category=${categorySlug}`}
+                role="listitem"
+                aria-current={isActive ? "page" : undefined}
+                className={`group relative flex-shrink-0 snap-center overflow-hidden rounded-2xl transition-all duration-300 ease-in-out ${
+                  isActive
+                    ? "ring-2 ring-amber-500 ring-offset-2 dark:ring-offset-zinc-950 scale-105 shadow-lg shadow-amber-500/20"
+                    : "opacity-80 hover:opacity-100 hover:ring-2 hover:ring-zinc-300 hover:ring-offset-2 dark:hover:ring-zinc-700 dark:hover:ring-offset-zinc-950"
+                }`}
               >
-                {/* Icon */}
-                <div
-                  className={cn(
-                    "flex h-8 w-8 items-center justify-center",
-                    "rounded-lg",
-                    "transition-all duration-300",
-                    !activeCategory
-                      ? "bg-white/20"
-                      : "bg-zinc-100 dark:bg-zinc-700"
+                <div className="relative h-28 w-44 sm:h-40 sm:w-64">
+                  {imageUrl ? (
+                    <Image
+                      src={imageUrl}
+                      alt={category.title ?? "Categoria"}
+                      fill
+                      sizes="(max-width: 640px) 176px, 256px"
+                      className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-amber-500 to-orange-700" />
                   )}
-                >
-                  <Sparkles
-                    className={cn(
-                      "h-4 w-4",
-                      "transition-transform duration-300",
-                      isHovering === "all" && "rotate-12 scale-110"
-                    )}
-                  />
-                </div>
 
-                {/* Text */}
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold">Todos</span>
-                  <span
-                    className={cn(
-                      "text-[10px] font-medium",
-                      !activeCategory
-                        ? "text-white/70 dark:text-zinc-900/70"
-                        : "text-zinc-500 dark:text-zinc-400"
-                    )}
-                  >
-                    Ver tudo
-                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent transition-opacity duration-300 group-hover:via-black/40" />
+
+                  <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4">
+                    <span className="block truncate text-sm font-bold text-white drop-shadow-md sm:text-base">
+                      {category.title}
+                    </span>
+                  </div>
+
+                  {isActive && (
+                    <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
+                      <span className="flex h-2.5 w-2.5">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+                        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-amber-500 border border-white/20" />
+                      </span>
+                    </div>
+                  )}
                 </div>
               </Link>
-
-              {/* Category Items */}
-              {categories.map((category) => {
-                const isActive = activeCategory === category.slug;
-                const imageUrl = category.image?.asset?.url;
-
-                return (
-                  <Link
-                    key={category._id}
-                    href={`/?category=${category.slug}`}
-                    data-category={category.slug}
-                    onMouseEnter={() => setIsHovering(category._id)}
-                    onMouseLeave={() => setIsHovering(null)}
-                    className={cn(
-                      "group relative flex-shrink-0",
-                      "flex items-center gap-2",
-                      "px-3 py-2.5 sm:px-4 sm:py-3",
-                      "rounded-xl sm:rounded-2xl",
-                      "border-2",
-                      "transition-all duration-300 ease-out",
-                      "hover:-translate-y-0.5",
-                      // Importante: Garantir que é clicável no mobile
-                      "cursor-pointer select-none",
-                      "active:scale-95",
-                      isActive
-                        ? [
-                            "border-amber-500 dark:border-amber-400",
-                            "bg-amber-50 dark:bg-amber-950/30",
-                            "text-amber-900 dark:text-amber-100",
-                            "shadow-lg shadow-amber-500/20",
-                          ]
-                        : [
-                            "border-zinc-200 dark:border-zinc-700",
-                            "bg-white dark:bg-zinc-800",
-                            "text-zinc-700 dark:text-zinc-300",
-                            "hover:border-zinc-300 dark:hover:border-zinc-600",
-                            "hover:shadow-md",
-                          ]
-                    )}
-                    style={{ scrollSnapAlign: "start" }}
-                  >
-                    {/* Category Image/Icon */}
-                    <div
-                      className={cn(
-                        "relative flex-shrink-0",
-                        "h-9 w-9 sm:h-10 sm:w-10",
-                        "rounded-lg overflow-hidden",
-                        "transition-all duration-300",
-                        // Remover pointer-events para não bloquear clique
-                        "pointer-events-none",
-                        isActive
-                          ? "ring-2 ring-amber-400 ring-offset-2 ring-offset-amber-50 dark:ring-offset-amber-950/30"
-                          : "ring-1 ring-zinc-200 dark:ring-zinc-600"
-                      )}
-                    >
-                      {imageUrl ? (
-                        <Image
-                          src={imageUrl}
-                          alt={category.title ?? "Categoria"}
-                          fill
-                          className={cn(
-                            "object-cover",
-                            "transition-transform duration-500",
-                            "group-hover:scale-110"
-                          )}
-                          sizes="40px"
-                          draggable={false}
-                        />
-                      ) : (
-                        <div
-                          className={cn(
-                            "flex h-full w-full items-center justify-center",
-                            "text-lg",
-                            isActive
-                              ? "bg-amber-100 dark:bg-amber-900/50"
-                              : "bg-zinc-100 dark:bg-zinc-700"
-                          )}
-                        >
-                          {getCategoryIcon(category.slug)}
-                        </div>
-                      )}
-
-                      {/* Hover Overlay */}
-                      <div
-                        className={cn(
-                          "absolute inset-0",
-                          "bg-black/0 group-hover:bg-black/10",
-                          "transition-colors duration-300"
-                        )}
-                      />
-                    </div>
-
-                    {/* Category Info */}
-                    <div className="flex flex-col min-w-0 pointer-events-none">
-                      <span className="text-sm font-semibold truncate">
-                        {category.title}
-                      </span>
-                      {category.productCount !== undefined && (
-                        <span
-                          className={cn(
-                            "text-[10px] font-medium",
-                            isActive
-                              ? "text-amber-600 dark:text-amber-400"
-                              : "text-zinc-500 dark:text-zinc-400"
-                          )}
-                        >
-                          {category.productCount} produtos
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Active Indicator */}
-                    {isActive && (
-                      <div
-                        className={cn(
-                          "absolute -bottom-px left-1/2 -translate-x-1/2",
-                          "h-1 w-8",
-                          "bg-amber-500 dark:bg-amber-400",
-                          "rounded-full"
-                        )}
-                      />
-                    )}
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
+            );
+          })}
         </div>
-      </div>
 
-      {/* Mobile Scroll Hint */}
-      <div
-        className={cn(
-          "flex items-center justify-center gap-2",
-          "py-2 sm:hidden",
-          "text-[10px] text-zinc-400 dark:text-zinc-500",
-          canScrollRight ? "opacity-100" : "opacity-0",
-          "transition-opacity duration-300"
-        )}
-      >
-        <span>Arraste para ver mais</span>
-        <ChevronRight className="h-3 w-3 animate-pulse" />
+        {/* === BOTÃO DIREITO (Apenas Desktop) === */}
+        <button
+          onClick={() => scroll("right")}
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 hidden lg:flex h-12 w-12 items-center justify-center rounded-full bg-white/90 shadow-lg backdrop-blur-sm transition-all hover:scale-110 hover:bg-white dark:bg-zinc-800/90 dark:hover:bg-zinc-800"
+          aria-label="Rolar para direita"
+        >
+          <ChevronRight className="h-6 w-6 text-zinc-700 dark:text-zinc-200" />
+        </button>
       </div>
-    </div>
+    </nav>
   );
 }
