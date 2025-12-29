@@ -4,6 +4,7 @@
 import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, Grid3X3, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -26,12 +27,16 @@ interface CategoryTilesProps {
 
 export function CategoryTiles({
   categories,
-  activeCategory,
+  activeCategory: propActiveCategory,
 }: CategoryTilesProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [isHovering, setIsHovering] = useState<string | null>(null);
+
+  // Pega o parâmetro da URL diretamente
+  const searchParams = useSearchParams();
+  const activeCategory = propActiveCategory || searchParams.get("category") || undefined;
 
   // Verifica se pode scrollar
   const checkScroll = () => {
@@ -49,6 +54,17 @@ export function CategoryTiles({
     window.addEventListener("resize", checkScroll);
     return () => window.removeEventListener("resize", checkScroll);
   }, [categories]);
+
+  // Scroll para a categoria ativa no mobile
+  useEffect(() => {
+    if (activeCategory && scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const activeElement = container.querySelector(`[data-category="${activeCategory}"]`);
+      if (activeElement) {
+        activeElement.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      }
+    }
+  }, [activeCategory]);
 
   const scroll = (direction: "left" | "right") => {
     const container = scrollContainerRef.current;
@@ -168,12 +184,19 @@ export function CategoryTiles({
               className={cn(
                 "flex gap-2 sm:gap-3",
                 "overflow-x-auto scrollbar-hide",
-                "pb-2 -mb-2" // Espaço para sombras
+                "pb-2 -mb-2",
+                // Importante: Touch scroll melhorado
+                "touch-pan-x"
               )}
+              style={{
+                WebkitOverflowScrolling: "touch",
+                scrollSnapType: "x mandatory",
+              }}
             >
               {/* Botão "Todos" */}
               <Link
                 href="/"
+                data-category="all"
                 onMouseEnter={() => setIsHovering("all")}
                 onMouseLeave={() => setIsHovering(null)}
                 className={cn(
@@ -184,6 +207,9 @@ export function CategoryTiles({
                   "border-2",
                   "transition-all duration-300 ease-out",
                   "hover:-translate-y-0.5",
+                  // Importante: Garantir que é clicável
+                  "cursor-pointer select-none",
+                  "active:scale-95",
                   !activeCategory
                     ? [
                         "border-zinc-900 dark:border-zinc-100",
@@ -199,6 +225,7 @@ export function CategoryTiles({
                         "hover:shadow-md",
                       ]
                 )}
+                style={{ scrollSnapAlign: "start" }}
               >
                 {/* Icon */}
                 <div
@@ -245,6 +272,7 @@ export function CategoryTiles({
                   <Link
                     key={category._id}
                     href={`/?category=${category.slug}`}
+                    data-category={category.slug}
                     onMouseEnter={() => setIsHovering(category._id)}
                     onMouseLeave={() => setIsHovering(null)}
                     className={cn(
@@ -255,6 +283,9 @@ export function CategoryTiles({
                       "border-2",
                       "transition-all duration-300 ease-out",
                       "hover:-translate-y-0.5",
+                      // Importante: Garantir que é clicável no mobile
+                      "cursor-pointer select-none",
+                      "active:scale-95",
                       isActive
                         ? [
                             "border-amber-500 dark:border-amber-400",
@@ -270,6 +301,7 @@ export function CategoryTiles({
                             "hover:shadow-md",
                           ]
                     )}
+                    style={{ scrollSnapAlign: "start" }}
                   >
                     {/* Category Image/Icon */}
                     <div
@@ -278,6 +310,8 @@ export function CategoryTiles({
                         "h-9 w-9 sm:h-10 sm:w-10",
                         "rounded-lg overflow-hidden",
                         "transition-all duration-300",
+                        // Remover pointer-events para não bloquear clique
+                        "pointer-events-none",
                         isActive
                           ? "ring-2 ring-amber-400 ring-offset-2 ring-offset-amber-50 dark:ring-offset-amber-950/30"
                           : "ring-1 ring-zinc-200 dark:ring-zinc-600"
@@ -294,6 +328,7 @@ export function CategoryTiles({
                             "group-hover:scale-110"
                           )}
                           sizes="40px"
+                          draggable={false}
                         />
                       ) : (
                         <div
@@ -320,7 +355,7 @@ export function CategoryTiles({
                     </div>
 
                     {/* Category Info */}
-                    <div className="flex flex-col min-w-0">
+                    <div className="flex flex-col min-w-0 pointer-events-none">
                       <span className="text-sm font-semibold truncate">
                         {category.title}
                       </span>

@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, ShoppingBag, AlertTriangle, Loader2 } from "lucide-react";
+import { useState } from "react"; // Adicionado
+import { ArrowLeft, ShoppingBag, AlertTriangle, Loader2, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input"; // Certifique-se de ter este componente
+import { Label } from "@/components/ui/label"; // Certifique-se de ter este componente
 import { formatPrice } from "@/lib/utils";
 import {
   useCartItems,
@@ -13,11 +16,68 @@ import {
 import { useCartStock } from "@/lib/hooks/useCartStock";
 import { CheckoutButton } from "@/components/app/CheckoutButton";
 
+// --- Funções Auxiliares de CPF (Totalmente funcionais) ---
+
+// Formata o CPF visualmente (000.000.000-00)
+const formatCPF = (value: string) => {
+  return value
+    .replace(/\D/g, "")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})/, "$1-$2")
+    .replace(/(-\d{2})\d+?$/, "$1");
+};
+
+// Validação matemática real de CPF (Algoritmo da Receita Federal)
+const isValidCPF = (cpf: string) => {
+  if (typeof cpf !== "string") return false;
+  cpf = cpf.replace(/[^\d]+/g, "");
+  if (cpf.length !== 11 || !!cpf.match(/(\d)\1{10}/)) return false;
+
+  const values = cpf.split("").map((el) => +el);
+  const rest = (count: number) =>
+    ((values
+      .slice(0, count - 12)
+      .reduce((syt, el, idx) => syt + el * (count - idx), 0) *
+      10) %
+      11) %
+    10;
+
+  return rest(10) === values[9] && rest(11) === values[10];
+};
+
 export function CheckoutClient() {
   const items = useCartItems();
   const totalPrice = useTotalPrice();
   const totalItems = useTotalItems();
   const { stockMap, isLoading, hasStockIssues } = useCartStock(items);
+
+  // Estados para o CPF
+  const [cpf, setCpf] = useState("");
+  const [cpfError, setCpfError] = useState("");
+
+  // Handler para mudança do input
+  const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value;
+    const formattedValue = formatCPF(rawValue);
+    setCpf(formattedValue);
+
+    // Validação em tempo real
+    if (formattedValue.length >= 14) {
+      if (!isValidCPF(formattedValue)) {
+        setCpfError("CPF inválido.");
+      } else {
+        setCpfError("");
+      }
+    } else {
+        // Limpa erro enquanto digita, mas valida no final
+       setCpfError("");
+    }
+  };
+
+  // Verifica se o formulário está pronto para envio
+  const isCpfValid = cpf.length === 14 && isValidCPF(cpf);
+  const isReadyToCheckout = !isLoading && !hasStockIssues && isCpfValid;
 
   if (items.length === 0) {
     return (
@@ -191,8 +251,38 @@ export function CheckoutClient() {
               </div>
             </div>
 
+            {/* --- INPUT DE CPF OBRIGATÓRIO PARA O ASAAS --- */}
+            <div className="mt-6 space-y-2">
+              <Label htmlFor="cpf" className="text-sm font-medium">
+                CPF do Titular <span className="text-red-500">*</span>
+              </Label>
+              <div className="relative">
+                <CreditCard className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
+                <Input
+                  id="cpf"
+                  placeholder="000.000.000-00"
+                  value={cpf}
+                  onChange={handleCpfChange}
+                  maxLength={14}
+                  className={`pl-9 ${
+                    cpfError ? "border-red-500 focus-visible:ring-red-500" : ""
+                  }`}
+                />
+              </div>
+              {cpfError && (
+                <p className="text-xs text-red-500">{cpfError}</p>
+              )}
+              <p className="text-xs text-zinc-500">
+                Obrigatório para emissão da cobrança e nota fiscal.
+              </p>
+            </div>
+
             <div className="mt-6">
-              <CheckoutButton disabled={hasStockIssues || isLoading} />
+              {/* Passamos o CPF para o botão de Checkout */}
+              <CheckoutButton
+                disabled={!isReadyToCheckout}
+                cpf={cpf.replace(/\D/g, "")} // Envia apenas números
+              />
             </div>
 
             <p className="mt-4 text-center text-xs text-zinc-500 dark:text-zinc-400">

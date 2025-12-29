@@ -23,6 +23,7 @@ interface CheckoutButtonProps {
   disabled?: boolean;
   variant?: "default" | "compact" | "prominent";
   showTrustBadges?: boolean;
+  cpf?: string;
 }
 
 // Etapas do processo de checkout
@@ -36,6 +37,7 @@ export function CheckoutButton({
   disabled,
   variant = "default",
   showTrustBadges = true,
+  cpf,
 }: CheckoutButtonProps) {
   const router = useRouter();
   const items = useCartItems();
@@ -61,7 +63,7 @@ export function CheckoutButton({
       }
 
       // Chama a Server Action
-      const result = await createCheckoutSession(items);
+      const result = await createCheckoutSession(items, cpf);
 
       if (result.success && result.url) {
         setIsSuccess(true);

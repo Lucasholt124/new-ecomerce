@@ -4,8 +4,7 @@ import { client, writeClient } from "@/sanity/lib/client";
 import { CUSTOMER_BY_EMAIL_QUERY } from "@/lib/sanity/queries/customers";
 
 /**
- * Gets or creates an Asaas customer by email
- * Also syncs the customer to Sanity database
+ * Busca ou cria um cliente no Asaas e sincroniza com o Sanity
  */
 export async function getOrCreateAsaasCustomer(
   email: string,
@@ -13,7 +12,7 @@ export async function getOrCreateAsaasCustomer(
   clerkUserId: string,
   cpfCnpj?: string
 ): Promise<{ asaasCustomerId: string; sanityCustomerId: string }> {
-  // 1. Configuração movida para dentro da função (Evita erro de Module Evaluation)
+  // 1. Configuração (Dentro da função para não quebrar build)
   const apiKey = process.env.ASAAS_API_KEY;
   const apiUrl = process.env.ASAAS_API_URL || "https://sandbox.asaas.com/api/v3";
 
@@ -21,7 +20,10 @@ export async function getOrCreateAsaasCustomer(
     throw new Error("ASAAS_API_KEY não está definida no arquivo .env.local");
   }
 
-  // 2. Check if customer already exists in Sanity
+  // Limpa o CPF para enviar apenas números (boa prática)
+  const cleanCpf = cpfCnpj ? cpfCnpj.replace(/\D/g, "") : undefined;
+
+  // 2. Verificar se já existe no Sanity (Cache local)
   const existingCustomer = await client.fetch(CUSTOMER_BY_EMAIL_QUERY, {
     email,
   });
@@ -33,28 +35,46 @@ export async function getOrCreateAsaasCustomer(
     };
   }
 
-  // 3. Check if customer exists in Asaas by email
+  // 3. Buscar no Asaas (Estratégia: CPF primeiro, depois Email)
   let asaasCustomerId: string | null = null;
 
   try {
-    const searchResponse = await fetch(`${apiUrl}/customers?email=${email}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        access_token: apiKey,
-      },
-    });
+    // A) Tenta buscar pelo CPF se disponível (É o identificador mais forte)
+    if (cleanCpf) {
+      const searchCpfResponse = await fetch(`${apiUrl}/customers?cpfCnpj=${cleanCpf}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          access_token: apiKey,
+        },
+      });
+      const searchCpfData = await searchCpfResponse.json();
+      if (searchCpfData.data && searchCpfData.data.length > 0) {
+        asaasCustomerId = searchCpfData.data[0].id;
+      }
+    }
 
-    const searchData = await searchResponse.json();
+    // B) Se não achou por CPF, tenta buscar por Email
+    if (!asaasCustomerId) {
+      const searchEmailResponse = await fetch(`${apiUrl}/customers?email=${email}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          access_token: apiKey,
+        },
+      });
+      const searchEmailData = await searchEmailResponse.json();
+      if (searchEmailData.data && searchEmailData.data.length > 0) {
+        asaasCustomerId = searchEmailData.data[0].id;
+      }
+    }
 
-    if (searchData.data && searchData.data.length > 0) {
-      asaasCustomerId = searchData.data[0].id;
-    } else {
-      // 4. Create new Asaas customer
+    // 4. Se não existe, CRIAR novo cliente no Asaas
+    if (!asaasCustomerId) {
       const newCustomerPayload = {
         name,
         email,
-        cpfCnpj: cpfCnpj || undefined,
+        cpfCnpj: cleanCpf, // Envia o CPF limpo
         externalReference: clerkUserId,
         notificationDisabled: false,
       };
@@ -71,7 +91,10 @@ export async function getOrCreateAsaasCustomer(
       const createdData = await createResponse.json();
 
       if (!createResponse.ok) {
-        console.error("Erro ao criar cliente no Asaas:", createdData);
+        // Log detalhado para debug
+        console.error("Payload enviado:", newCustomerPayload);
+        console.error("Erro Asaas:", createdData);
+
         throw new Error(
           createdData.errors?.[0]?.description || "Falha ao criar cliente no Asaas"
         );
@@ -80,15 +103,16 @@ export async function getOrCreateAsaasCustomer(
       asaasCustomerId = createdData.id;
     }
   } catch (error) {
-    console.error("Asaas Customer Error:", error);
+    console.error("Erro na integração de Cliente Asaas:", error);
     throw error;
   }
 
   if (!asaasCustomerId) {
-    throw new Error("Falha ao obter ID do cliente Asaas");
+    throw new Error("Falha crítica: ID do cliente Asaas não foi gerado.");
   }
 
-  // 5. Create or update customer in Sanity
+  // 5. Criar ou Atualizar no Sanity
+  // Isso garante que da próxima vez não precisaremos ir no Asaas buscar
   if (existingCustomer) {
     await writeClient
       .patch(existingCustomer._id)

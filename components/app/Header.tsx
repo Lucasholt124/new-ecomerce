@@ -1,7 +1,7 @@
 // components/app/Header.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   Package,
@@ -31,6 +31,9 @@ export function Header() {
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMoreDropdownOpen, setIsMoreDropdownOpen] = useState(false);
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Detecta scroll para mudar estilo do header
   useEffect(() => {
@@ -52,6 +55,30 @@ export function Header() {
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Fecha dropdown ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsMoreDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Fecha dropdown ao pressionar Escape
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsMoreDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
   }, []);
 
   return (
@@ -189,8 +216,8 @@ export function Header() {
                 {[
                   { label: "Todos", href: "/" },
                   { label: "Sofás", href: "/?category=sofas" },
-                  { label: "Cadeiras", href: "/?category=cadeiras" },
-                  { label: "Mesas", href: "/?category=mesas" },
+                  { label: "Cadeiras", href: "/?category=chairs" },
+                  { label: "Mesas", href: "/?category=tables" },
                 ].map((item) => (
                   <Link
                     key={item.href}
@@ -209,9 +236,11 @@ export function Header() {
                   </Link>
                 ))}
 
-                {/* Dropdown para mais */}
-                <div className="relative group">
+                {/* Dropdown para mais - CORRIGIDO */}
+                <div className="relative" ref={dropdownRef}>
                   <button
+                    onClick={() => setIsMoreDropdownOpen(!isMoreDropdownOpen)}
+                    onMouseEnter={() => setIsMoreDropdownOpen(true)}
                     className={cn(
                       "flex items-center gap-1",
                       "px-3 py-2",
@@ -222,12 +251,19 @@ export function Header() {
                       "hover:bg-zinc-100 dark:hover:bg-zinc-800",
                       "transition-colors duration-200"
                     )}
+                    aria-expanded={isMoreDropdownOpen}
+                    aria-haspopup="true"
                   >
                     Mais
-                    <ChevronDown className="h-4 w-4" />
+                    <ChevronDown
+                      className={cn(
+                        "h-4 w-4 transition-transform duration-200",
+                        isMoreDropdownOpen && "rotate-180"
+                      )}
+                    />
                   </button>
 
-                  {/* Dropdown Menu */}
+                  {/* Dropdown Menu - CORRIGIDO */}
                   <div
                     className={cn(
                       "absolute top-full left-0 mt-1",
@@ -237,10 +273,12 @@ export function Header() {
                       "border border-zinc-200 dark:border-zinc-700",
                       "rounded-xl",
                       "shadow-xl shadow-black/5",
-                      "opacity-0 invisible translate-y-2",
-                      "group-hover:opacity-100 group-hover:visible group-hover:translate-y-0",
-                      "transition-all duration-200"
+                      "transition-all duration-200",
+                      isMoreDropdownOpen
+                        ? "opacity-100 visible translate-y-0"
+                        : "opacity-0 invisible translate-y-2 pointer-events-none"
                     )}
+                    onMouseLeave={() => setIsMoreDropdownOpen(false)}
                   >
                     {[
                       { label: "Camas", href: "/?category=camas" },
@@ -251,12 +289,14 @@ export function Header() {
                       <Link
                         key={item.href}
                         href={item.href}
+                        onClick={() => setIsMoreDropdownOpen(false)}
                         className={cn(
-                          "block px-4 py-2",
+                          "block px-4 py-2.5",
                           "text-sm",
                           "text-zinc-600 dark:text-zinc-400",
                           "hover:text-zinc-900 dark:hover:text-zinc-100",
-                          "hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                          "hover:bg-zinc-50 dark:hover:bg-zinc-800",
+                          "transition-colors duration-150"
                         )}
                       >
                         {item.label}
@@ -476,7 +516,7 @@ export function Header() {
           </div>
 
           {/* Menu Links */}
-          <nav className="p-4">
+          <nav className="p-4 overflow-y-auto" style={{ maxHeight: "calc(100vh - 140px)" }}>
             <div className="space-y-1">
               {[
                 { label: "Todos os Produtos", href: "/" },
@@ -486,6 +526,7 @@ export function Header() {
                 { label: "Camas", href: "/?category=camas" },
                 { label: "Armários", href: "/?category=armarios" },
                 { label: "Estantes", href: "/?category=estantes" },
+                { label: "Decoração", href: "/?category=decoracao" },
               ].map((item) => (
                 <Link
                   key={item.href}
@@ -497,6 +538,7 @@ export function Header() {
                     "text-sm font-medium",
                     "text-zinc-700 dark:text-zinc-300",
                     "hover:bg-zinc-100 dark:hover:bg-zinc-800",
+                    "active:bg-zinc-200 dark:active:bg-zinc-700",
                     "rounded-lg",
                     "transition-colors duration-200"
                   )}
@@ -522,7 +564,8 @@ export function Header() {
                 "bg-gradient-to-r from-amber-500 to-orange-500",
                 "text-white",
                 "rounded-xl",
-                "font-medium"
+                "font-medium",
+                "active:opacity-90"
               )}
             >
               <Sparkles className="h-5 w-5" />
@@ -540,6 +583,7 @@ export function Header() {
                   "text-sm font-medium",
                   "text-zinc-700 dark:text-zinc-300",
                   "hover:bg-zinc-100 dark:hover:bg-zinc-800",
+                  "active:bg-zinc-200 dark:active:bg-zinc-700",
                   "rounded-lg"
                 )}
               >
@@ -550,7 +594,7 @@ export function Header() {
           </nav>
 
           {/* Menu Footer */}
-          <div className="absolute bottom-0 left-0 right-0 border-t border-zinc-200 dark:border-zinc-800 p-4">
+          <div className="absolute bottom-0 left-0 right-0 border-t border-zinc-200 dark:border-zinc-800 p-4 bg-white dark:bg-zinc-950">
             <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
               <Truck className="h-4 w-4 text-green-500" />
               Frete grátis acima de R$ 299

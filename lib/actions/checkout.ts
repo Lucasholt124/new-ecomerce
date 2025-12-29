@@ -3,15 +3,10 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { client } from "@/sanity/lib/client";
 import { PRODUCTS_BY_IDS_QUERY } from "@/lib/sanity/queries/products";
-import { getOrCreateAsaasCustomer } from "./customer";
+import { getOrCreateAsaasCustomer } from "./customer"; // Certifique-se que este arquivo existe
 
-// Configuração do Asaas
-const ASAAS_API_KEY = process.env.ASAAS_API_KEY;
-const ASAAS_API_URL = process.env.ASAAS_API_URL || "https://sandbox.asaas.com/api/v3"; // Padrão Sandbox
-
-if (!ASAAS_API_KEY) {
-  throw new Error("ASAAS_API_KEY is not defined");
-}
+// Configuração do Asaas (Definida mas não validada aqui para não quebrar build)
+const ASAAS_API_URL = process.env.ASAAS_API_URL || "https://sandbox.asaas.com/api/v3";
 
 // Types
 interface CartItem {
@@ -32,8 +27,17 @@ interface CheckoutResult {
  * Cria uma cobrança no Asaas baseada nos itens do carrinho
  */
 export async function createCheckoutSession(
-  items: CartItem[]
+  items: CartItem[],
+  cpf?: string
 ): Promise<CheckoutResult> {
+  const ASAAS_API_KEY = process.env.ASAAS_API_KEY;
+
+  // 0. VERIFICAÇÃO CRÍTICA DENTRO DA FUNÇÃO
+  if (!ASAAS_API_KEY) {
+    console.error("ERRO CRÍTICO: ASAAS_API_KEY não configurada no .env.local");
+    return { success: false, error: "Erro de configuração no servidor de pagamento." };
+  }
+
   try {
     // 1. Verify user is authenticated
     const { userId } = await auth();
@@ -99,14 +103,16 @@ export async function createCheckoutSession(
     }
 
     // 5. Get or create Asaas customer
-    // Assumindo que você atualizará o arquivo actions/customer.ts para exportar essa função
     const userEmail = user.emailAddresses[0]?.emailAddress ?? "";
-    const userName =
-      `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || userEmail;
+    const userName = `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || userEmail;
 
-    // Precisamos do CPF para o Asaas em produção, mas na sandbox ou dependendo da config, pode ser opcional.
-    // Aqui tentamos pegar do metadata do Clerk se existir, ou passamos vazio (o Asaas pode reclamar se não tiver CPF/CNPJ)
-    const userCpf = user.publicMetadata?.cpf as string || "";
+    // Prioriza o CPF do input, senão tenta do metadata
+    const userCpf = cpf || (user.publicMetadata?.cpf as string) || "";
+
+    // Validação extra de CPF antes de chamar a criação de cliente
+    if (!userCpf) {
+        return { success: false, error: "CPF é obrigatório para gerar a cobrança." };
+    }
 
     const { asaasCustomerId } = await getOrCreateAsaasCustomer(
       userEmail,
@@ -122,21 +128,23 @@ export async function createCheckoutSession(
     dueDate.setDate(dueDate.getDate() + 3);
     const dueDateString = dueDate.toISOString().split('T')[0];
 
-    // Montar payload
-    // Usamos externalReference para guardar o ID do Clerk e IDs dos produtos para o Webhook recuperar depois
+    // Montar payload com externalReference
     const externalData = {
         clerkUserId: userId,
         productIds: validatedItems.map((i) => i.product._id).join(","),
         quantities: validatedItems.map((i) => i.quantity).join(","),
     };
 
+    // Limitar externalReference a 255 chars (limite comum) se necessário, ou usar metadata
+    const externalRefString = JSON.stringify(externalData);
+
     const paymentPayload = {
       customer: asaasCustomerId,
-      billingType: "UNDEFINED", // Permite ao usuário escolher (Pix, Boleto, Cartão) na tela do Asaas
+      billingType: "UNDEFINED", // Permite pix/boleto/cartão
       value: totalAmount,
       dueDate: dueDateString,
-      description: `Pedido no E-commerce:\n${descriptionItems}`,
-      externalReference: JSON.stringify(externalData), // Limitado a chars, cuidado se for muito longo
+      description: `Pedido na Loja:\n${descriptionItems}`.substring(0, 500), // Limite seguro
+      externalReference: externalRefString,
       postalService: false,
     };
 
@@ -144,7 +152,7 @@ export async function createCheckoutSession(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        access_token: ASAAS_API_KEY!, // Adicionado o ! aqui
+        access_token: ASAAS_API_KEY,
       },
       body: JSON.stringify(paymentPayload),
     });
@@ -153,6 +161,7 @@ export async function createCheckoutSession(
 
     if (!response.ok) {
         console.error("Asaas Create Error:", data);
+        // Tenta extrair mensagem amigável
         const errorMessage = data.errors?.[0]?.description || "Erro ao criar cobrança no Asaas";
         return { success: false, error: errorMessage };
     }
@@ -171,9 +180,11 @@ export async function createCheckoutSession(
 
 /**
  * Retrieves a checkout session by ID (for success page)
- * No Asaas, isso seria buscar a cobrança pelo ID
  */
 export async function getCheckoutSession(paymentId: string) {
+  const ASAAS_API_KEY = process.env.ASAAS_API_KEY;
+  if (!ASAAS_API_KEY) return { success: false, error: "Erro de configuração" };
+
   try {
     const { userId } = await auth();
 
@@ -185,7 +196,7 @@ export async function getCheckoutSession(paymentId: string) {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
-            access_token: ASAAS_API_KEY!, // Adicionado o ! aqui também
+            access_token: ASAAS_API_KEY,
         }
     });
 
@@ -195,8 +206,9 @@ export async function getCheckoutSession(paymentId: string) {
         return { success: false, error: "Pedido não encontrado" };
     }
 
-    // Tentar validar se o pedido pertence ao usuário
-    // Parse externalReference para verificar ownership
+    // Validação de propriedade via externalReference
+    // Nota: Em produção, isso deve ser mais robusto, talvez salvando o pedido no Sanity ANTES do checkout
+    // Mas para este fluxo, validamos se o JSON bate
     let isOwner = false;
     try {
         const metadata = JSON.parse(payment.externalReference || "{}");
@@ -204,20 +216,20 @@ export async function getCheckoutSession(paymentId: string) {
             isOwner = true;
         }
     } catch (e) {
-        console.log("Erro ao validar ownership via externalReference", e);
+        console.log("Erro ao validar ownership", e);
     }
 
     return {
       success: true,
       session: {
         id: payment.id,
-        customerEmail: "Cliente Asaas", // O endpoint /payments/{id} não retorna email do cliente direto
-        amountTotal: payment.value * 100, // Frontend espera centavos (padrão stripe/shopify)
+        customerEmail: "Cliente",
+        amountTotal: payment.value, // Valor real (não centavos, Asaas usa float)
         paymentStatus: payment.status, // PENDING, RECEIVED, CONFIRMED
         lineItems: [{
-            name: payment.description,
+            name: payment.description || "Pedido",
             quantity: 1,
-            amount: payment.value * 100
+            amount: payment.value
         }],
       },
     };
