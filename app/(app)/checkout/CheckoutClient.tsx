@@ -25,13 +25,13 @@ export function CheckoutClient() {
         <div className="text-center">
           <ShoppingBag className="mx-auto h-16 w-16 text-zinc-300 dark:text-zinc-600" />
           <h1 className="mt-6 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-            Seu carrinho está vazio {/* Traduzido */}
+            Seu carrinho está vazio
           </h1>
           <p className="mt-2 text-zinc-500 dark:text-zinc-400">
-            Adicione alguns itens ao seu carrinho antes de finalizar. {/* Traduzido */}
+            Adicione alguns itens ao seu carrinho antes de finalizar.
           </p>
           <Button asChild className="mt-8">
-            <Link href="/">Continuar Comprando</Link> {/* Traduzido */}
+            <Link href="/">Continuar Comprando</Link>
           </Button>
         </div>
       </div>
@@ -47,10 +47,10 @@ export function CheckoutClient() {
           className="inline-flex items-center text-sm text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Continuar Comprando {/* Traduzido */}
+          Continuar Comprando
         </Link>
         <h1 className="mt-4 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-          Finalizar Compra {/* Traduzido */}
+          Finalizar Compra
         </h1>
       </div>
 
@@ -60,7 +60,7 @@ export function CheckoutClient() {
           <div className="rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
             <div className="border-b border-zinc-200 px-6 py-4 dark:border-zinc-800">
               <h2 className="font-semibold text-zinc-900 dark:text-zinc-100">
-                Resumo do Pedido ({totalItems} itens) {/* Traduzido */}
+                Resumo do Pedido ({totalItems} itens)
               </h2>
             </div>
 
@@ -69,7 +69,7 @@ export function CheckoutClient() {
               <div className="mx-6 mt-4 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-200">
                 <AlertTriangle className="h-5 w-5 shrink-0" />
                 <span>
-                  Alguns itens têm problemas de estoque. Por favor, atualize seu carrinho antes de prosseguir. {/* Traduzido */}
+                  Alguns itens têm problemas de estoque. Por favor, atualize seu carrinho antes de prosseguir.
                 </span>
               </div>
             )}
@@ -79,7 +79,7 @@ export function CheckoutClient() {
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
                 <span className="ml-2 text-sm text-zinc-500">
-                  Verificando estoque... {/* Traduzido */}
+                  Verificando estoque...
                 </span>
               </div>
             )}
@@ -110,7 +110,7 @@ export function CheckoutClient() {
                         />
                       ) : (
                         <div className="flex h-full items-center justify-center text-xs text-zinc-400">
-                          Sem imagem {/* Traduzido */}
+                          Sem imagem
                         </div>
                       )}
                     </div>
@@ -122,16 +122,16 @@ export function CheckoutClient() {
                           {item.name}
                         </h3>
                         <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                          Qtd: {item.quantity} {/* Traduzido */}
+                          Qtd: {item.quantity}
                         </p>
                         {stockInfo?.isOutOfStock && (
                           <p className="mt-1 text-sm font-medium text-red-600">
-                            Esgotado {/* Traduzido */}
+                            Esgotado
                           </p>
                         )}
                         {stockInfo?.exceedsStock && !stockInfo.isOutOfStock && (
                           <p className="mt-1 text-sm font-medium text-amber-600">
-                            Apenas {stockInfo.currentStock} disponíveis {/* Traduzido */}
+                            Apenas {stockInfo.currentStock} disponíveis
                           </p>
                         )}
                       </div>
@@ -144,7 +144,7 @@ export function CheckoutClient() {
                       </p>
                       {item.quantity > 1 && (
                         <p className="text-sm text-zinc-500">
-                          {formatPrice(item.price)} cada {/* Traduzido */}
+                          {formatPrice(item.price)} cada
                         </p>
                       )}
                     </div>
@@ -159,7 +159,7 @@ export function CheckoutClient() {
         <div className="lg:col-span-2">
           <div className="sticky top-24 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
             <h2 className="font-semibold text-zinc-900 dark:text-zinc-100">
-              Resumo do Pagamento {/* Traduzido */}
+              Resumo do Pagamento
             </h2>
 
             <div className="mt-6 space-y-4">
@@ -173,10 +173,10 @@ export function CheckoutClient() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-zinc-500 dark:text-zinc-400">
-                  Frete {/* Traduzido */}
+                  Frete
                 </span>
                 <span className="text-zinc-900 dark:text-zinc-100">
-                  Calculado na finalização {/* Traduzido */}
+                  Calculado na finalização
                 </span>
               </div>
               <div className="border-t border-zinc-200 pt-4 dark:border-zinc-800">
@@ -196,7 +196,7 @@ export function CheckoutClient() {
             </div>
 
             <p className="mt-4 text-center text-xs text-zinc-500 dark:text-zinc-400">
-              Você será redirecionado para o checkout seguro do Asaas {/* Traduzido */}
+              Você será redirecionado para o checkout seguro do Asaas
             </p>
           </div>
         </div>
