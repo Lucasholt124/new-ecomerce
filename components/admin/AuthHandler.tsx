@@ -51,20 +51,14 @@ function LoginPrompt() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const handleLogin = async () => {
-    setIsLoggingIn(true);
+  setIsLoggingIn(true);
 
-    // Salva a URL atual para redirecionar após o login
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("sanity_redirect_url", window.location.href);
-    }
+  // URL fixa de redirecionamento - IMPORTANTE!
+  const redirectUrl = "https://new-ecomerce-gules.vercel.app/admin";
 
-    // Redireciona para login do Sanity
-    const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "x6tl5mbe";
-    const currentUrl = typeof window !== "undefined" ? window.location.origin : "";
-
-    // URL de login do Sanity
-    window.location.href = `https://api.sanity.io/v1/auth/login/sanity?projectId=${projectId}&redirectUrl=${encodeURIComponent(currentUrl + "/admin")}`;
-  };
+  // URL de login do Sanity com redirecionamento explícito
+  window.location.href = `https://api.sanity.io/v1/auth/login?projectId=x6tl5mbe&redirectUrl=${encodeURIComponent(redirectUrl)}`;
+};
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-950">
