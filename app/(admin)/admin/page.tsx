@@ -11,37 +11,17 @@ import {
   AIInsightsCard,
 } from "@/components/admin";
 
-// Se você estiver usando @sanity/sdk-react fora do Studio, isso pode quebrar.
-// Se der erro, remova os imports do @sanity/sdk-react e use a lógica simples abaixo.
-import {
-  useApplyDocumentActions,
-  createDocumentHandle,
-  createDocument,
-} from "@sanity/sdk-react";
+// REMOVI OS IMPORTS DO @sanity/sdk-react QUE CAUSAVAM O ERRO
 
 export default function AdminDashboard() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  // Tenta usar os hooks do Sanity, mas se falhar, temos um fallback visual
-  const apply = useApplyDocumentActions();
-
   const handleCreateProduct = () => {
-    startTransition(async () => {
-      try {
-        // Tenta criar usando o SDK (se estiver no contexto correto)
-        const newId = crypto.randomUUID();
-        const newDocHandle = createDocumentHandle({
-          documentId: newId,
-          documentType: "product",
-        });
-        await apply(createDocument(newDocHandle));
-        router.push(`/admin/inventory/${newId}`);
-      } catch (error) {
-        console.error("Erro ao usar SDK do Sanity, redirecionando para criação manual...", error);
-        // Fallback: Redireciona para uma página de criação "nova"
+    // Simplesmente redireciona para sua página de criação manual
+    // Se você quiser criar o documento via API, precisa ser via Server Action
+    startTransition(() => {
         router.push("/admin/inventory/new");
-      }
     });
   };
 
