@@ -93,7 +93,7 @@ function RecentOrdersContent() {
           <ShoppingCart className="h-6 w-6 text-zinc-400" />
         </div>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Nenhum pedido ainda
+          Ainda não há pedidos.
         </p>
       </div>
     );
@@ -125,13 +125,13 @@ export function RecentOrders() {
     <div className="rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
       <div className="flex items-center justify-between border-b border-zinc-200 px-6 py-4 dark:border-zinc-800">
         <h2 className="font-semibold text-zinc-900 dark:text-zinc-100">
-          Pedidos Recentes
+          Pedidos recentes
         </h2>
         <Link
           href="/admin/orders"
           className="text-sm text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
         >
-          Ver todos →
+          Ver tudo →
         </Link>
       </div>
       <div className="p-4">

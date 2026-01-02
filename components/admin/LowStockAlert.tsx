@@ -69,7 +69,7 @@ function LowStockProductRow(handle: DocumentHandle) {
         variant={isOutOfStock ? "destructive" : "secondary"}
         className="shrink-0"
       >
-        {isOutOfStock ? "Esgotado" : `${data.stock} restantes`}
+        {isOutOfStock ? "Out of stock" : `${data.stock} left`}
       </Badge>
     </Link>
   );
@@ -86,7 +86,7 @@ function LowStockProductRowSkeleton() {
 }
 
 function LowStockAlertContent() {
-  // Busca produtos com estoque baixo (estoque <= 5)
+  // Fetch products with low stock (stock <= 5)
   const { data: lowStockProducts } = useDocuments({
     documentType: "product",
     filter: "stock <= 5",
@@ -101,7 +101,7 @@ function LowStockAlertContent() {
           <span className="text-2xl">✓</span>
         </div>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Todos os produtos estão com bom estoque!
+          All products are well stocked!
         </p>
       </div>
     );
@@ -122,7 +122,7 @@ function LowStockAlertContent() {
           href="/admin/inventory?filter=low-stock"
           className="block text-center text-sm text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
         >
-          Ver todos os {lowStockProducts.length} itens com estoque baixo →
+          View all {lowStockProducts.length} low stock items →
         </Link>
       )}
     </div>
@@ -145,7 +145,7 @@ export function LowStockAlert() {
       <div className="flex items-center gap-2 border-b border-zinc-200 px-6 py-4 dark:border-zinc-800">
         <AlertTriangle className="h-5 w-5 text-amber-500" />
         <h2 className="font-semibold text-zinc-900 dark:text-zinc-100">
-          Alertas de Estoque Baixo
+          Low Stock Alerts
         </h2>
       </div>
       <div className="p-4">

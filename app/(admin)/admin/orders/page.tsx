@@ -25,9 +25,9 @@ function OrderListContent({
   statusFilter,
   searchFilter,
 }: OrderListContentProps) {
-  // Combina filtros de status e busca
+  // Combine status and search filters
   const filters: string[] = [];
-  if (statusFilter !== "all") {
+  if (statusFilter !== "Todos") {
     filters.push(`status == "${statusFilter}"`);
   }
   if (searchFilter) {
@@ -41,7 +41,7 @@ function OrderListContent({
     loadMore,
     isPending,
   } = useDocuments({
-    documentType: "order",
+    documentType: "ordem",
     filter,
     orderings: [{ field: "_createdAt", direction: "desc" }],
     batchSize: 20,
@@ -49,10 +49,10 @@ function OrderListContent({
 
   if (!orders || orders.length === 0) {
     const description = searchFilter
-      ? "Tente ajustar seus termos de busca."
-      : statusFilter === "all"
-      ? "Os pedidos aparecerão aqui quando os clientes comprarem."
-      : `Nenhum pedido com status "${statusFilter}" no momento.`;
+      ? "Tente ajustar seus termos de pesquisa."
+      : statusFilter === "todos"
+        ? "Os pedidos aparecerão aqui quando os clientes efetuarem compras."
+        : `Não ${statusFilter} pedidos no momento.`;
 
     return (
       <EmptyState
@@ -83,7 +83,7 @@ function OrderListContent({
             onClick={() => loadMore()}
             disabled={isPending}
           >
-            {isPending ? "Carregando..." : "Carregar Mais"}
+            {isPending ? "Loading..." : "Carregar mais"}
           </Button>
         </div>
       )}
@@ -120,14 +120,14 @@ export default function OrdersPage() {
           Pedidos
         </h1>
         <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 sm:text-base">
-          Gerencie e acompanhe os pedidos dos clientes
+          Gerenciar e acompanhar pedidos de clientes
         </p>
       </div>
 
       {/* Search and Tabs */}
       <div className="flex flex-col gap-4">
         <AdminSearch
-          placeholder="Buscar por nº do pedido ou email..."
+          placeholder="Pesquise por número do pedido ou e-mail..."
           value={searchQuery}
           onChange={setSearchQuery}
           className="w-full sm:max-w-xs"

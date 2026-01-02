@@ -24,7 +24,6 @@ function StatCardContent({
   valueFormatter = (count) => count.toString(),
   href,
 }: StatCardProps) {
-  // Hook que ouve as mudanças no Sanity em tempo real
   const { data } = useDocuments({
     documentType,
     filter,

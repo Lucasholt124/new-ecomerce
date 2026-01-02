@@ -102,14 +102,14 @@ function OrderDetailContent({ handle }: { handle: DocumentHandle }) {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 sm:text-2xl">
-            Pedido #{data.orderNumber}
+            Ordem {data.orderNumber}
           </h1>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
             {formatDate(data.createdAt, "datetime")}
           </p>
         </div>
 
-        {/* Status e Ações */}
+        {/* Status and Actions */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
           <div className="flex items-center gap-3">
             <span className="text-sm text-zinc-500 dark:text-zinc-400">
@@ -130,14 +130,13 @@ function OrderDetailContent({ handle }: { handle: DocumentHandle }) {
         </div>
       </div>
 
-
       <div className="grid gap-6 lg:grid-cols-5 lg:gap-8">
-        {/* Itens do Pedido */}
+        {/* Order Items */}
         <div className="space-y-6 lg:col-span-3">
           <div className="rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
             <div className="border-b border-zinc-200 px-4 py-3 dark:border-zinc-800 sm:px-6 sm:py-4">
               <h2 className="font-semibold text-zinc-900 dark:text-zinc-100">
-                Itens ({data.items?.length ?? 0})
+                Items ({data.items?.length ?? 0})
               </h2>
             </div>
             <div className="divide-y divide-zinc-200 dark:divide-zinc-800">
@@ -146,29 +145,29 @@ function OrderDetailContent({ handle }: { handle: DocumentHandle }) {
                   key={item._key}
                   className="flex gap-3 px-4 py-3 sm:gap-4 sm:px-6 sm:py-4"
                 >
-                  {/* Imagem */}
+                  {/* Image */}
                   <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-zinc-100 dark:bg-zinc-800 sm:h-20 sm:w-20">
                     {item.product?.image?.asset?.url ? (
                       <Image
                         src={item.product.image.asset.url}
-                        alt={item.product.name ?? "Produto"}
+                        alt={item.product.name ?? "Product"}
                         fill
                         className="object-cover"
                         sizes="80px"
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center text-xs text-zinc-400">
-                        Sem img
+                        Sem imagem
                       </div>
                     )}
                   </div>
 
-                  {/* Detalhes */}
+                  {/* Details */}
                   <div className="flex flex-1 flex-col justify-between">
                     <div>
                       <div className="flex items-start gap-2">
                         <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100 sm:text-base">
-                          {item.product?.name ?? "Produto Desconhecido"}
+                          {item.product?.name ?? "Unknown Product"}
                         </span>
                         {item.product?.slug && (
                           <Link
@@ -181,13 +180,13 @@ function OrderDetailContent({ handle }: { handle: DocumentHandle }) {
                         )}
                       </div>
                       <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 sm:text-sm">
-                        Qtd: {item.quantity} ×{" "}
+                        Quantidade: {item.quantity} ×{" "}
                         {formatPrice(item.priceAtPurchase)}
                       </p>
                     </div>
                   </div>
 
-                  {/* Preço */}
+                  {/* Price */}
                   <div className="text-right">
                     <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 sm:text-base">
                       {formatPrice(
@@ -200,10 +199,10 @@ function OrderDetailContent({ handle }: { handle: DocumentHandle }) {
             </div>
           </div>
 
-          {/* Resumo do Pedido */}
+          {/* Order Summary */}
           <div className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:p-6">
             <h2 className="font-semibold text-zinc-900 dark:text-zinc-100">
-              Resumo do Pedido
+              Resumo do pedido
             </h2>
             <div className="mt-4 space-y-3">
               <div className="flex justify-between text-sm">
@@ -230,7 +229,7 @@ function OrderDetailContent({ handle }: { handle: DocumentHandle }) {
 
         {/* Sidebar */}
         <div className="space-y-6 lg:col-span-2">
-          {/* Informações do Cliente */}
+          {/* Customer Info */}
           <div className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:p-6">
             <div className="flex items-center gap-2">
               <CreditCard className="h-5 w-5 text-zinc-400" />
@@ -250,13 +249,13 @@ function OrderDetailContent({ handle }: { handle: DocumentHandle }) {
             </div>
           </div>
 
-          {/* Endereço de Entrega Editável */}
+          {/* Editable Shipping Address */}
           <div className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <MapPin className="h-5 w-5 text-zinc-400" />
                 <h2 className="font-semibold text-zinc-900 dark:text-zinc-100">
-                  Endereço de Entrega
+                  Endereço para envio
                 </h2>
               </div>
               <Edit2 className="h-4 w-4 text-zinc-400" />
@@ -282,14 +281,14 @@ function OrderDetailContent({ handle }: { handle: DocumentHandle }) {
               Edição Avançada
             </h2>
             <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-              Para alterações adicionais, edite este pedido no Sanity Studio.
+              Para fazer alterações adicionais, edite este pedido no Sanity Studio.
             </p>
             <Link
               href={`/studio/structure/order;${handle.documentId}`}
               target="_blank"
               className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-zinc-900 hover:text-zinc-600 dark:text-zinc-100 dark:hover:text-zinc-300"
             >
-              Abrir no Studio
+              Abrir no estúdio
               <ExternalLink className="h-3.5 w-3.5" />
             </Link>
           </div>
@@ -333,7 +332,7 @@ export default function OrderDetailPage({ params }: PageProps) {
 
   const handle: DocumentHandle = {
     documentId: id,
-    documentType: "order",
+    documentType: "ordem",
   };
 
   return (
@@ -344,7 +343,7 @@ export default function OrderDetailPage({ params }: PageProps) {
         className="inline-flex items-center text-sm text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
       >
         <ArrowLeft className="mr-2 h-4 w-4" />
-        Voltar para Pedidos
+       Voltar aos pedidos
       </Link>
 
       {/* Order Detail */}

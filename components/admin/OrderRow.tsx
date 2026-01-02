@@ -19,7 +19,6 @@ interface OrderProjection {
 }
 
 function OrderRowContent(handle: DocumentHandle) {
-  // Projeção otimizada para buscar apenas o necessário para a lista
   const { data } = useDocumentProjection<OrderProjection>({
     ...handle,
     projection: `{
@@ -39,25 +38,25 @@ function OrderRowContent(handle: DocumentHandle) {
 
   return (
     <TableRow className="group transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-      {/* Info do Pedido - Mobile: inclui email, itens, total */}
+      {/* Order Info - Mobile: includes email, items, total */}
       <TableCell className="py-3 sm:py-4">
         <Link href={`/admin/orders/${handle.documentId}`} className="block">
           <div className="flex items-center justify-between gap-2 sm:block">
             <span className="font-medium text-zinc-900 dark:text-zinc-100">
               #{formatOrderNumber(data.orderNumber)}
             </span>
-            {/* Mobile: Total na mesma linha */}
+            {/* Mobile: Total inline */}
             <span className="font-medium text-zinc-900 dark:text-zinc-100 sm:hidden">
               {formatPrice(data.total)}
             </span>
           </div>
-          {/* Mobile: Email e contagem de itens */}
+          {/* Mobile: Email and items */}
           <div className="mt-1 sm:hidden">
             <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
               {data.email}
             </p>
             <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
-              {data.itemCount} {data.itemCount === 1 ? "item" : "itens"}
+              {data.itemCount} {data.itemCount === 1 ? "item" : "items"}
               {data.createdAt && (
                 <>
                   {" · "}
@@ -69,7 +68,7 @@ function OrderRowContent(handle: DocumentHandle) {
         </Link>
       </TableCell>
 
-      {/* Email - Apenas Desktop */}
+      {/* Email - Desktop only */}
       <TableCell className="hidden py-4 text-zinc-500 dark:text-zinc-400 sm:table-cell">
         <Link
           href={`/admin/orders/${handle.documentId}`}
@@ -79,21 +78,21 @@ function OrderRowContent(handle: DocumentHandle) {
         </Link>
       </TableCell>
 
-      {/* Itens - Apenas Desktop */}
+      {/* Items - Desktop only */}
       <TableCell className="hidden py-4 text-center md:table-cell">
         <Link href={`/admin/orders/${handle.documentId}`} className="block">
           {data.itemCount}
         </Link>
       </TableCell>
 
-      {/* Total - Apenas Desktop */}
+      {/* Total - Desktop only */}
       <TableCell className="hidden py-4 font-medium text-zinc-900 dark:text-zinc-100 sm:table-cell">
         <Link href={`/admin/orders/${handle.documentId}`} className="block">
           {formatPrice(data.total)}
         </Link>
       </TableCell>
 
-      {/* Status - Sempre visível */}
+      {/* Status - Always visible */}
       <TableCell className="py-3 sm:py-4">
         <Link
           href={`/admin/orders/${handle.documentId}`}
@@ -108,7 +107,7 @@ function OrderRowContent(handle: DocumentHandle) {
         </Link>
       </TableCell>
 
-      {/* Data - Apenas Desktop */}
+      {/* Date - Desktop only */}
       <TableCell className="hidden py-4 text-zinc-500 dark:text-zinc-400 md:table-cell">
         <Link href={`/admin/orders/${handle.documentId}`} className="block">
           {formatDate(data.createdAt, "long", "—")}

@@ -28,26 +28,24 @@ import {
   DeleteButton,
 } from "@/components/admin";
 
-// Mantivemos os 'values' em inglês para compatibilidade com o banco de dados
-// Mas traduzimos os 'labels' para a interface do usuário
 const MATERIALS = [
-  { value: "wood", label: "Madeira" },
+  { value: "wood", label: "Wood" },
   { value: "metal", label: "Metal" },
-  { value: "fabric", label: "Tecido" },
-  { value: "leather", label: "Couro" },
-  { value: "glass", label: "Vidro" },
+  { value: "fabric", label: "Fabric" },
+  { value: "leather", label: "Leather" },
+  { value: "glass", label: "Glass" },
 ];
 
 const COLORS = [
-  { value: "black", label: "Preto" },
-  { value: "white", label: "Branco" },
-  { value: "oak", label: "Carvalho" },
-  { value: "walnut", label: "Nogueira" },
-  { value: "grey", label: "Cinza" },
+  { value: "black", label: "Black" },
+  { value: "white", label: "White" },
+  { value: "oak", label: "Oak" },
+  { value: "walnut", label: "Walnut" },
+  { value: "grey", label: "Grey" },
   { value: "natural", label: "Natural" },
 ];
 
-// Componentes de edição de campos
+// Field editor components
 function NameEditor(handle: DocumentHandle) {
   const { data: name } = useDocument({ ...handle, path: "name" });
   const editName = useEditDocument({ ...handle, path: "name" });
@@ -56,7 +54,7 @@ function NameEditor(handle: DocumentHandle) {
     <Input
       value={(name as string) ?? ""}
       onChange={(e) => editName(e.target.value)}
-      placeholder="Nome do produto"
+      placeholder="Product name"
     />
   );
 }
@@ -70,7 +68,7 @@ function SlugEditor(handle: DocumentHandle) {
     <Input
       value={slugValue}
       onChange={(e) => editSlug({ _type: "slug", current: e.target.value })}
-      placeholder="slug-do-produto"
+      placeholder="product-slug"
     />
   );
 }
@@ -83,7 +81,7 @@ function DescriptionEditor(handle: DocumentHandle) {
     <Textarea
       value={(description as string) ?? ""}
       onChange={(e) => editDescription(e.target.value)}
-      placeholder="Descrição do produto..."
+      placeholder="Product description..."
       rows={4}
     />
   );
@@ -102,7 +100,7 @@ function PriceEditor(handle: DocumentHandle) {
       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
         editPrice(parseFloat(e.target.value) || 0)
       }
-      placeholder="0,00"
+      placeholder="0.00"
     />
   );
 }
@@ -132,7 +130,7 @@ function MaterialEditor(handle: DocumentHandle) {
       onValueChange={(value) => editMaterial(value)}
     >
       <SelectTrigger>
-        <SelectValue placeholder="Selecione o material" />
+        <SelectValue placeholder="Select material" />
       </SelectTrigger>
       <SelectContent>
         {MATERIALS.map((m) => (
@@ -155,7 +153,7 @@ function ColorEditor(handle: DocumentHandle) {
       onValueChange={(value) => editColor(value)}
     >
       <SelectTrigger>
-        <SelectValue placeholder="Selecione a cor" />
+        <SelectValue placeholder="Select color" />
       </SelectTrigger>
       <SelectContent>
         {COLORS.map((c) => (
@@ -176,7 +174,7 @@ function DimensionsEditor(handle: DocumentHandle) {
     <Input
       value={(dimensions as string) ?? ""}
       onChange={(e) => editDimensions(e.target.value)}
-      placeholder='ex: "120cm x 80cm x 75cm"'
+      placeholder='e.g., "120cm x 80cm x 75cm"'
     />
   );
 }
@@ -233,7 +231,7 @@ function ProductStoreLink(handle: DocumentHandle) {
       target="_blank"
       className="flex items-center justify-center gap-1 text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
     >
-      Ver na loja
+     Ver na loja
       <ExternalLink className="h-3.5 w-3.5" />
     </Link>
   );
@@ -248,10 +246,10 @@ function ProductDetailContent({ handle }: { handle: DocumentHandle }) {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 sm:text-2xl">
-            {(name as string) || "Novo Produto"}
+            {(name as string) || "New Product"}
           </h1>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            Editar detalhes do produto
+           Editar detalhes do produto
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -271,7 +269,7 @@ function ProductDetailContent({ handle }: { handle: DocumentHandle }) {
           {/* Basic Info */}
           <div className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:p-6">
             <h2 className="mb-4 font-semibold text-zinc-900 dark:text-zinc-100">
-              Informações Básicas
+              Informações básicas
             </h2>
             <div className="space-y-4">
               <div className="space-y-2">
@@ -298,11 +296,11 @@ function ProductDetailContent({ handle }: { handle: DocumentHandle }) {
           {/* Pricing & Inventory */}
           <div className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:p-6">
             <h2 className="mb-4 font-semibold text-zinc-900 dark:text-zinc-100">
-              Preço & Estoque
+              Preços e estoque
             </h2>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="price">Preço (R$)</Label>
+                <Label htmlFor="price">Preço (BRL)</Label>
                 <Suspense fallback={<Skeleton className="h-10" />}>
                   <PriceEditor {...handle} />
                 </Suspense>
@@ -352,10 +350,10 @@ function ProductDetailContent({ handle }: { handle: DocumentHandle }) {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                    Produto em Destaque
+                    Produto em destaque
                   </p>
                   <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    Exibir na página inicial e promoções
+                    Exibir na página inicial e em promoções
                   </p>
                 </div>
                 <Suspense fallback={<Skeleton className="h-6 w-11" />}>
@@ -365,7 +363,7 @@ function ProductDetailContent({ handle }: { handle: DocumentHandle }) {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                    Montagem Necessária
+                    Montagem necessária
                   </p>
                   <p className="text-sm text-zinc-500 dark:text-zinc-400">
                     O cliente precisará montar
@@ -384,7 +382,7 @@ function ProductDetailContent({ handle }: { handle: DocumentHandle }) {
           {/* Image Upload */}
           <div className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:p-6">
             <h2 className="mb-4 font-semibold text-zinc-900 dark:text-zinc-100">
-              Imagens do Produto
+             Imagens do produto
             </h2>
             <ImageUploader {...handle} />
             <div className="mt-4">
@@ -400,14 +398,14 @@ function ProductDetailContent({ handle }: { handle: DocumentHandle }) {
               Edição Avançada
             </h2>
             <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-              Defina categoria e outras opções no Sanity Studio.
+              Defina a categoria e outras opções no Sanity Studio.
             </p>
             <Link
               href={`/studio/structure/product;${handle.documentId}`}
               target="_blank"
               className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-zinc-900 hover:text-zinc-600 dark:text-zinc-100 dark:hover:text-zinc-300"
             >
-              Abrir no Studio
+             Abrir no estúdio
               <ExternalLink className="h-3.5 w-3.5" />
             </Link>
           </div>
@@ -462,7 +460,7 @@ export default function ProductDetailPage({ params }: PageProps) {
         className="inline-flex items-center text-sm text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
       >
         <ArrowLeft className="mr-2 h-4 w-4" />
-        Voltar para o Estoque
+        Voltar ao inventário
       </Link>
 
       {/* Product Detail */}

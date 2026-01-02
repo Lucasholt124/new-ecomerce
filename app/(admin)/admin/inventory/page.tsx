@@ -50,16 +50,16 @@ function ProductListContent({
     return (
       <EmptyState
         icon={Package}
-        title={filter ? "Nenhum produto encontrado" : "Nenhum produto ainda"}
+        title={filter ? "Nenhum produto encontrado" : "Ainda não há produtos disponíveis"}
         description={
           filter
-            ? "Tente ajustar seus termos de busca."
+            ? "Tente ajustar seus termos de pesquisa."
             : "Comece adicionando seu primeiro produto."
         }
         action={
           !filter
             ? {
-                label: "Adicionar Produto",
+                label: "Todos Product",
                 onClick: onCreateProduct,
                 disabled: isCreating,
                 icon: isCreating ? Loader2 : Plus,
@@ -90,7 +90,7 @@ function ProductListContent({
             onClick={() => loadMore()}
             disabled={isPending}
           >
-            {isPending ? "Carregando..." : "Carregar Mais"}
+            {isPending ? "Loading..." : "Carregar mais"}
           </Button>
         </div>
       )}
@@ -118,25 +118,16 @@ function InventoryContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isPending, startTransition] = useTransition();
   const { filter, isSearching } = useProductSearchFilter(searchQuery);
-
-  // Tenta usar o hook, mas se falhar (fora do contexto), temos fallback
   const apply = useApplyDocumentActions();
 
   const handleCreateProduct = () => {
     startTransition(async () => {
-      try {
-        const newId = crypto.randomUUID();
-        const newDocHandle = createDocumentHandle({
-          documentId: newId,
-          documentType: "product",
-        });
-        await apply(createDocument(newDocHandle));
-        router.push(`/admin/inventory/${newId}`);
-      } catch (error) {
-        console.error("Erro ao criar via SDK, redirecionando...", error);
-        // Fallback para criação manual
-        router.push("/admin/inventory/new");
-      }
+      const newDocHandle = createDocumentHandle({
+        documentId: crypto.randomUUID(),
+        documentType: "product",
+      });
+      await apply(createDocument(newDocHandle));
+      router.push(`/admin/inventory/${newDocHandle.documentId}`);
     });
   };
 
@@ -146,10 +137,10 @@ function InventoryContent() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 sm:text-3xl">
-            Estoque
+            Inventário
           </h1>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 sm:text-base">
-            Gerencie o estoque e preços dos seus produtos
+            Gerencie seu estoque e preços de produtos.
           </p>
         </div>
         <Button
@@ -162,13 +153,13 @@ function InventoryContent() {
           ) : (
             <Plus className="mr-2 h-4 w-4" />
           )}
-          Novo Produto
+          Novo produto
         </Button>
       </div>
 
       {/* Search */}
       <AdminSearch
-        placeholder="Buscar produtos..."
+        placeholder="Pesquisar produtos..."
         value={searchQuery}
         onChange={setSearchQuery}
         className="w-full sm:max-w-sm"

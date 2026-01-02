@@ -36,7 +36,6 @@ interface ProductProjection {
 }
 
 function ProductRowContent(handle: DocumentHandle) {
-  // Projeção otimizada: busca apenas os dados necessários para a linha
   const { data } = useDocumentProjection<ProductProjection>({
     ...handle,
     projection: `{
@@ -56,7 +55,7 @@ function ProductRowContent(handle: DocumentHandle) {
     }`,
   });
 
-  // Verifica se é um rascunho (alterações não publicadas)
+  // Check if document is a draft (unpublished changes)
   const { data: document } = useDocument(handle);
   const isDraft = document?._id?.startsWith("drafts.");
 
@@ -67,7 +66,7 @@ function ProductRowContent(handle: DocumentHandle) {
 
   return (
     <TableRow className="group">
-      {/* Imagem - Apenas Desktop */}
+      {/* Image - Desktop only */}
       <TableCell className="hidden py-3 sm:table-cell">
         <div className="relative h-12 w-12 overflow-hidden rounded-md bg-zinc-100 dark:bg-zinc-800">
           {data.image?.asset?.url ? (
@@ -86,13 +85,13 @@ function ProductRowContent(handle: DocumentHandle) {
         </div>
       </TableCell>
 
-      {/* Nome - Mobile: inclui imagem, preço, badges de estoque */}
+      {/* Name - Mobile: includes image, price, stock badges */}
       <TableCell className="py-3 sm:py-4">
         <Link
           href={`/admin/inventory/${handle.documentId}`}
           className="flex items-start gap-3 sm:block"
         >
-          {/* Imagem Mobile */}
+          {/* Mobile image */}
           <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md bg-zinc-100 dark:bg-zinc-800 sm:hidden">
             {data.image?.asset?.url ? (
               <Image
@@ -111,7 +110,7 @@ function ProductRowContent(handle: DocumentHandle) {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
               <span className="truncate font-medium text-zinc-900 group-hover:text-zinc-600 dark:text-zinc-100 dark:group-hover:text-zinc-300 sm:hover:text-zinc-600 sm:dark:hover:text-zinc-300">
-                {data.name || "Produto sem Nome"}
+                {data.name || "Untitled Product"}
               </span>
               {data.featured && (
                 <Star className="h-3.5 w-3.5 shrink-0 fill-amber-400 text-amber-400 sm:hidden" />
@@ -125,7 +124,7 @@ function ProductRowContent(handle: DocumentHandle) {
                     window.open(`/products/${data.slug}`, "_blank");
                   }}
                   className="hidden shrink-0 opacity-0 transition-opacity group-hover:opacity-100 sm:block"
-                  aria-label="Ver produto na loja"
+                  aria-label="View product on store"
                 >
                   <ExternalLink className="h-3.5 w-3.5 text-zinc-400 hover:text-zinc-600" />
                 </button>
@@ -147,21 +146,18 @@ function ProductRowContent(handle: DocumentHandle) {
                 {data.category.title}
               </p>
             )}
-            {/* Mobile: mostra preço e estoque na linha */}
+            {/* Mobile: show price and stock inline */}
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs sm:hidden">
               <span className="font-medium text-zinc-700 dark:text-zinc-300">
                 {formatPrice(data.price)}
               </span>
               <span className="text-zinc-300 dark:text-zinc-600">•</span>
               <span className="text-zinc-500 dark:text-zinc-400">
-                {data.stock} em estoque
+                {data.stock} in stock
               </span>
               {outOfStock && (
-                <Badge
-                  variant="destructive"
-                  className="h-5 px-1.5 text-[10px]"
-                >
-                  Esgotado
+                <Badge variant="destructive" className="h-5 px-1.5 text-[10px]">
+                  Fora
                 </Badge>
               )}
               {lowStock && (
@@ -177,14 +173,14 @@ function ProductRowContent(handle: DocumentHandle) {
         </Link>
       </TableCell>
 
-      {/* Preço - Apenas Desktop */}
+      {/* Price - Desktop only */}
       <TableCell className="hidden py-4 md:table-cell">
         <Suspense fallback={<Skeleton className="h-8 w-24" />}>
           <PriceInput {...handle} />
         </Suspense>
       </TableCell>
 
-      {/* Estoque - Apenas Desktop */}
+      {/* Stock - Desktop only */}
       <TableCell className="hidden py-4 md:table-cell">
         <div className="flex items-center gap-2">
           <Suspense fallback={<Skeleton className="h-8 w-20" />}>
@@ -192,7 +188,7 @@ function ProductRowContent(handle: DocumentHandle) {
           </Suspense>
           {outOfStock && (
             <Badge variant="destructive" className="text-xs">
-              Esgotado
+              Fora
             </Badge>
           )}
           {lowStock && (
@@ -206,14 +202,14 @@ function ProductRowContent(handle: DocumentHandle) {
         </div>
       </TableCell>
 
-      {/* Destaque - Apenas Desktop */}
+      {/* Featured - Desktop only */}
       <TableCell className="hidden py-4 lg:table-cell">
         <Suspense fallback={<Skeleton className="h-8 w-8" />}>
           <FeaturedToggle {...handle} />
         </Suspense>
       </TableCell>
 
-      {/* Ações - Apenas Desktop */}
+      {/* Actions - Desktop only */}
       <TableCell className="hidden py-4 sm:table-cell">
         <div className="flex items-center justify-end gap-2">
           <Suspense fallback={null}>
