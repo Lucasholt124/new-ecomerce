@@ -10,6 +10,7 @@ function SanityAppProvider({ children }: { children: React.ReactNode }) {
         {
           projectId,
           dataset,
+          // Remova a propriedade auth que está causando erro
         },
       ]}
       fallback={<div />}
